@@ -1,19 +1,16 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
+from django.views.generic import ListView
 
 from blogicum.constants import MAX_POSTS_SHOWED
 from .models import Category, Post
 
 
-def index(request):
-    posts = Post.published_posts.all()[:MAX_POSTS_SHOWED]
-    return render(
-        request,
-        'blog/index.html',
-        {
-            'page_obj': posts,
-        }
-    )
+class IndexListView(ListView):
+    model = Post
+    template_name = 'blog/index.html'
+    context_object_name = "page_obj"
+    queryset = Post.published_posts.all()[:MAX_POSTS_SHOWED]
 
 
 def post_detail(request, post_id):
