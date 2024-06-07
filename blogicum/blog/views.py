@@ -11,7 +11,7 @@ def index(request):
         request,
         'blog/index.html',
         {
-            'post_list': posts,
+            'page_obj': posts,
         }
     )
 
@@ -48,4 +48,31 @@ def category_posts(request, category_slug):
             'category': category,
             'post_list': posts,
         }
+    )
+
+
+def create_post(request):
+
+    return render(
+        request,
+        'blog/create.html',
+        context={}
+    )
+
+
+def profile(request, username):
+
+    return render(
+        request,
+        'blog/profile.html',
+        context={}
+    )
+
+
+def logout(request):
+
+    return render(
+        request,
+        'blog/index.html',
+        context={}
     )

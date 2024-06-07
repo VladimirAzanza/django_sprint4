@@ -7,7 +7,10 @@ SECRET_KEY = 'django-insecure-kl-ud&xnz&z=2=_sr#o3o8w5ystnvybxhm5!_ti2@zu+z)*v-q
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1'
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -18,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'blog.apps.BlogConfig',
     'pages.apps.PagesConfig',
+    'django_bootstrap5',
 ]
 
 MIDDLEWARE = [
