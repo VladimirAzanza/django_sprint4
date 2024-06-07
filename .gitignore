@@ -60,6 +60,7 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+db.json
 
 # Flask stuff:
 instance/
@@ -147,6 +148,7 @@ dmypy.json
 
 # папки со статикой и медиа
 media/
+img/
 
 sent_emails/
 
