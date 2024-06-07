@@ -1,4 +1,5 @@
 from typing import Any
+from django.contrib.auth import get_user_model
 from django.db.models.query import QuerySet
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -55,7 +56,7 @@ class CategoryPostsListView(ListView):
 
 
 def create_post(request):
-
+    
     return render(
         request,
         'blog/create.html',
@@ -64,11 +65,15 @@ def create_post(request):
 
 
 def profile(request, username):
-
+    profile = get_object_or_404(get_user_model(), username=username)
+    page_obj = Post.objects.filter(author=profile)
     return render(
         request,
         'blog/profile.html',
-        context={}
+        context={
+            'profile': profile,
+            'page_obj': page_obj
+        }
     )
 
 
