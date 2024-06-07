@@ -1,3 +1,5 @@
+from typing import Any
+from django.db.models.query import QuerySet
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.views.generic import ListView
@@ -9,8 +11,10 @@ from .models import Category, Post
 class IndexListView(ListView):
     model = Post
     template_name = 'blog/index.html'
-    context_object_name = "page_obj"
-    queryset = Post.published_posts.all()[:MAX_POSTS_SHOWED]
+    context_object_name = 'page_obj'
+
+    def get_queryset(self):
+        return Post.published_posts.all()[:MAX_POSTS_SHOWED]
 
 
 def post_detail(request, post_id):
@@ -27,25 +31,27 @@ def post_detail(request, post_id):
     )
 
 
-def category_posts(request, category_slug):
-    category = get_object_or_404(
-        Category,
-        slug=category_slug,
-        is_published=True,
-        created_at__lte=timezone.now()
-    )
-    posts = category.posts.filter(
-        is_published=True,
-        pub_date__lte=timezone.now()
-    )
-    return render(
-        request,
-        'blog/category.html',
-        {
-            'category': category,
-            'post_list': posts,
-        }
-    )
+class CategoryPostsListView(ListView):
+    model = Category
+    template_name = 'blog/category.html'
+    context_object_name = 'page_obj'
+
+    def get_queryset(self):
+        self.category = get_object_or_404(
+            Category,
+            slug=self.kwargs['category_slug'],
+            is_published=True,
+            created_at__lte=timezone.now()
+        )
+        return self.category.posts.filter(
+            is_published=True,
+            pub_date__lte=timezone.now()
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['category'] = self.category
+        return context
 
 
 def create_post(request):
