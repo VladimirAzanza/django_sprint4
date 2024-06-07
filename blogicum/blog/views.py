@@ -1,4 +1,3 @@
-from typing import Any
 from django.contrib.auth import get_user_model
 from django.db.models.query import QuerySet
 from django.shortcuts import render, get_object_or_404
@@ -7,6 +6,9 @@ from django.views.generic import ListView
 
 from blogicum.constants import MAX_POSTS_SHOWED
 from .models import Category, Post
+
+
+User = get_user_model()
 
 
 class IndexListView(ListView):
@@ -65,7 +67,7 @@ def create_post(request):
 
 
 def profile(request, username):
-    profile = get_object_or_404(get_user_model(), username=username)
+    profile = get_object_or_404(User, username=username)
     page_obj = Post.objects.filter(author=profile)
     return render(
         request,
