@@ -26,7 +26,7 @@
           {% csrf_token %}
           {% if not '/delete/' in request.path %}
             {% bootstrap_form form %}
-          {% else %}
+          {% else %}   
             <article>
               {% if form.instance.image %}
                 <a href="{{ form.instance.image.url }}" target="_blank">

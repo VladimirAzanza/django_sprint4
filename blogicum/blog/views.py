@@ -6,6 +6,7 @@ from django.views.generic import ListView
 
 from blogicum.constants import MAX_POSTS_SHOWED
 from .models import Category, Post
+from .forms import PostForm
 
 
 User = get_user_model()
@@ -58,11 +59,18 @@ class CategoryPostsListView(ListView):
 
 
 def create_post(request):
-    
+    form = PostForm(request.POST or None)
+    if form.is_valid():
+        post = form.save(commit=False)
+        post.author = request.user
+        post.save()
+    context = {
+        'form': form
+    }
     return render(
         request,
         'blog/create.html',
-        context={}
+        context
     )
 
 
