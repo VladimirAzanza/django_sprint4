@@ -95,6 +95,9 @@ class Post(BaseModel):
         related_name='posts',
         verbose_name='Категория'
     )
+    image = models.ImageField(
+        'Фото', blank=True, upload_to='posts_images'
+    )
     objects = models.Manager()
     published_posts = PublishedPostManager()
 
