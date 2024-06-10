@@ -23,6 +23,16 @@ urlpatterns = [
         name='add_comment'
     ),
     path(
+        'posts/<int:post_id>/edit_comment/<int:pk>',
+        views.CommentUpdateView.as_view(),
+        name='edit_comment'
+    ),
+    path(
+        'posts/<int:post_id>/delete_comment/<int:pk>',
+        views.CommentDeleteView.as_view(),
+        name='delete_comment'
+    ),
+    path(
         'category/<slug:category_slug>/',
         views.CategoryPostsListView.as_view(),
         name='category_posts'

@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.urls import reverse
 
 from .managers import PublishedPostManager
 from blogicum.constants import MAX_TITLE_LENGTH, TRUNCATE_LENGTH
@@ -133,6 +134,10 @@ class Comment(BaseModel):
     )
 
     class Meta:
-        verbose_name = ("комментарий")
-        verbose_name_plural = ("Комментарии")        
+        verbose_name = ('комментарий')
+        verbose_name_plural = ('Комментарии')        
         ordering = ('created_at',)
+
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', kwargs={'post_id': self.post.pk})
+    

@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.generic import ListView
+from django.views.generic import DeleteView, ListView, UpdateView
 
 from blogicum.constants import MAX_POSTS_SHOWED
-from .models import Category, Post
+from .models import Category, Post, Comment
 from .forms import CommentForm, PostForm
 
 
@@ -48,6 +49,24 @@ def post_detail(request, post_id):
             'comments': post.comments.all()
         }
     )
+
+
+class OnlyAuthorMixin(UserPassesTestMixin):
+
+    def test_func(self):
+        object = self.get_object()
+        return object.author == self.request.user
+
+
+class CommentUpdateView(UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment.html'
+
+
+class CommentDeleteView(DeleteView):
+    model = Comment
+    template_name = 'blog/comment.html'
 
 
 class CategoryPostsListView(ListView):
