@@ -21,7 +21,7 @@ class IndexListView(ListView):
     context_object_name = 'page_obj'
 
     def get_queryset(self):
-        return Post.published_posts.all()[:MAX_POSTS_SHOWED]
+        return Post.published_posts.all()
 
 
 @login_required
@@ -68,6 +68,12 @@ class CommentUpdateView(UpdateView):
 class CommentDeleteView(DeleteView):
     model = Comment
     template_name = 'blog/comment.html'
+
+    def get_success_url(self):
+        return reverse(
+            'blog:post_detail',
+            kwargs={'post_id': self.object.post.id}
+        )
 
 
 class CategoryPostsListView(ListView):
