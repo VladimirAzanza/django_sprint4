@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -19,9 +20,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_bootstrap5',
     'blog.apps.BlogConfig',
     'pages.apps.PagesConfig',
-    'django_bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -89,11 +90,12 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [os.path.join(BASE_DIR / 'static')]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
 
 LOGIN_REDIRECT_URL = 'blog:index'
+LOGIN_URL = 'login'
