@@ -32,11 +32,6 @@ urlpatterns = [
         views.profile,
         name='profile'
     ),
-    path(
-        'logout/',
-        views.logout,
-        name='logout'
-    ),
 ]
 
 if settings.DEBUG:

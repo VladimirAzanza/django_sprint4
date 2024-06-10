@@ -85,12 +85,3 @@ def profile(request, username):
             'page_obj': page_obj
         }
     )
-
-
-def logout(request):
-
-    return render(
-        request,
-        'blog/index.html',
-        context={}
-    )
