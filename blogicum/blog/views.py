@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.db.models.query import QuerySet
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.generic import ListView
 
 from blogicum.constants import MAX_POSTS_SHOWED
 from .models import Category, Post
-from .forms import PostForm
+from .forms import CommentForm, PostForm
 
 
 User = get_user_model()
@@ -21,6 +22,18 @@ class IndexListView(ListView):
         return Post.published_posts.all()[:MAX_POSTS_SHOWED]
 
 
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect('blog:post_detail', post_id=post_id)
+
+
 def post_detail(request, post_id):
     post = get_object_or_404(
         Post.published_posts.all(),
@@ -31,6 +44,8 @@ def post_detail(request, post_id):
         'blog/detail.html',
         {
             'post': post,
+            'form': CommentForm,
+            'comments': post.comments.all()
         }
     )
 

@@ -18,6 +18,11 @@ urlpatterns = [
         name='post_detail'
     ),
     path(
+        'posts/<int:post_id>/comment',
+        views.add_comment,
+        name='add_comment'
+    ),
+    path(
         'category/<slug:category_slug>/',
         views.CategoryPostsListView.as_view(),
         name='category_posts'

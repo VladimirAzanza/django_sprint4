@@ -5,6 +5,9 @@ from .managers import PublishedPostManager
 from blogicum.constants import MAX_TITLE_LENGTH, TRUNCATE_LENGTH
 
 
+User = get_user_model()
+
+
 class BaseModel(models.Model):
     is_published = models.BooleanField(
         default=True,
@@ -76,7 +79,7 @@ class Post(BaseModel):
         )
     )
     author = models.ForeignKey(
-        get_user_model(),
+        User,
         on_delete=models.CASCADE,
         related_name='posts',
         verbose_name='Автор публикации'
@@ -110,3 +113,26 @@ class Post(BaseModel):
 
     def __str__(self):
         return self.title[:TRUNCATE_LENGTH]
+
+
+class Comment(BaseModel):
+    text = text = models.TextField(
+        verbose_name='Текст'
+    )
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Пост к коментарию'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор публикации'
+    )
+
+    class Meta:
+        verbose_name = ("комментарий")
+        verbose_name_plural = ("Комментарии")        
+        ordering = ('created_at',)
