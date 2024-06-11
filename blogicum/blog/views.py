@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
+from django.http import HttpRequest
+from django.http.response import HttpResponse as HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.urls import reverse
@@ -65,6 +67,11 @@ class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
     template_name = 'blog/create.html'
     form_class = PostForm
 
+    def dispatch(self, request, *args, **kwargs):
+        if not self.test_func():
+            return redirect('blog:post_detail', post_id=kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
@@ -84,6 +91,7 @@ def delete_post(request, post_id):
         'blog/create.html',
         context
     )
+
 
 class CommentUpdateView(UpdateView):
     model = Comment
