@@ -46,7 +46,7 @@ def post_detail(request, post_id):
         'blog/detail.html',
         {
             'post': post,
-            'form': CommentForm,
+            'form': CommentForm(),
             'comments': post.comments.all()
         }
     )
