@@ -7,7 +7,7 @@ from django.http import HttpRequest
 from django.http.response import HttpResponse as HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views.generic import DeleteView, ListView, UpdateView
 
 from blogicum.constants import MAX_POSTS_SHOWED
@@ -77,20 +77,19 @@ class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
         return super().form_valid(form)
 
 
-def delete_post(request, post_id):
-    post_instance = get_object_or_404(Post, pk=post_id)
-    form = PostForm(instance=post_instance)
-    context = {
-        'form': form
-    }
-    if request.method == 'POST':
-        post_instance.delete()
-        return redirect('blog:index')
-    return render(
-        request,
-        'blog/create.html',
-        context
-    )
+class PostDeleteView(LoginRequiredMixin, OnlyAuthorMixin, DeleteView):
+    model = Post
+    template_name = 'blog/create.html'
+    success_url = reverse_lazy('blog:index')
+
+    def dispatch(self, request, *args, **kwargs):
+        self.post_instance = get_object_or_404(Post, pk=kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = PostForm(instance=self.post_instance)
+        return context
 
 
 class CommentUpdateView(UpdateView):
