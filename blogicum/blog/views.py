@@ -48,9 +48,14 @@ def add_comment(request, post_id):
 
 def post_detail(request, post_id):
     post = get_object_or_404(
-        Post.published_posts.all(),
+        Post.objects.all(),
         pk=post_id,
     )
+    if request.user != post.author:
+        post = get_object_or_404(
+            Post.published_posts.all(),
+            pk=post_id,
+        )
     return render(
         request,
         'blog/detail.html',
