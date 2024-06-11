@@ -52,6 +52,26 @@ def post_detail(request, post_id):
     )
 
 
+def edit_post(request, post_id):
+    post_instance = get_object_or_404(Post, pk=post_id)
+    form = PostForm(request.POST or None, files=request.FILES or None, instance=post_instance)
+    if form.is_valid():
+        post = form.save(commit=False)
+        post.author = request.user
+        post.save()
+    context = {
+        'form': form
+    }
+    return render(
+        request,
+        'blog/create.html',
+        context
+    )
+
+
+def delete_post(request, post_id):
+    pass
+
 class OnlyAuthorMixin(UserPassesTestMixin):
 
     def test_func(self):
