@@ -70,7 +70,20 @@ def edit_post(request, post_id):
 
 
 def delete_post(request, post_id):
-    pass
+    post_instance = get_object_or_404(Post, pk=post_id)
+    form = PostForm(instance=post_instance)
+    context = {
+        'form': form
+    }
+    if request.method == 'POST':
+        post_instance.delete()
+        return redirect('blog:index')
+    return render(
+        request,
+        'blog/create.html',
+        context
+    )
+
 
 class OnlyAuthorMixin(UserPassesTestMixin):
 
