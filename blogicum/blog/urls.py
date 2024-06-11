@@ -43,9 +43,14 @@ urlpatterns = [
         name='create_post'
     ),
     path(
-        'profile/<slug:username>',
+        'profile/<slug:username>/',
         views.profile,
         name='profile'
+    ),
+    path(
+        'edit_profile/',
+        views.edit_profile,
+        name='edit_profile'
     ),
 ]
 

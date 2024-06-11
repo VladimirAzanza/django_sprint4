@@ -9,7 +9,7 @@ from django.views.generic import DeleteView, ListView, UpdateView
 
 from blogicum.constants import MAX_POSTS_SHOWED
 from .models import Category, Post, Comment
-from .forms import CommentForm, PostForm
+from .forms import CommentForm, PostForm, UserForm
 
 
 User = get_user_model()
@@ -124,5 +124,20 @@ def profile(request, username):
         context={
             'profile': profile,
             'page_obj': page_obj
+        }
+    )
+
+
+def edit_profile(request):
+    user_instance = get_object_or_404(User, username=request.user.username)
+    form = UserForm(request.POST or None, instance=user_instance)
+    if form.is_valid():
+        form.save()
+        return redirect('blog:profile', username=request.user.username)
+    return render(
+        request,
+        'blog/user.html',
+        context={
+            'form': form
         }
     )

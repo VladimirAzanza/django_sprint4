@@ -4,6 +4,11 @@ from django.urls import include, path, reverse_lazy
 from django.views.generic.edit import CreateView
 
 
+handler403 = 'pages.views.csrf_failure'
+handler404 = 'pages.views.page_not_found'
+handler500 = 'pages.views.internal_server_error'
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('pages/', include('pages.urls', namespace='pages')),
