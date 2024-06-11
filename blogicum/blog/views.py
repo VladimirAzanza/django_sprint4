@@ -97,13 +97,13 @@ class PostDeleteView(LoginRequiredMixin, OnlyAuthorMixin, DeleteView):
         return context
 
 
-class CommentUpdateView(UpdateView):
+class CommentUpdateView(OnlyAuthorMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment.html'
 
 
-class CommentDeleteView(DeleteView):
+class CommentDeleteView(OnlyAuthorMixin, DeleteView):
     model = Comment
     template_name = 'blog/comment.html'
 
