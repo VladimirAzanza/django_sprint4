@@ -16,6 +16,13 @@ from .forms import CommentForm, PostForm, UserForm
 User = get_user_model()
 
 
+class OnlyAuthorMixin(UserPassesTestMixin):
+
+    def test_func(self):
+        object = self.get_object()
+        return object.author == self.request.user
+
+
 class IndexListView(ListView):
     model = Post
     template_name = 'blog/index.html'
@@ -53,21 +60,14 @@ def post_detail(request, post_id):
     )
 
 
-def edit_post(request, post_id):
-    post_instance = get_object_or_404(Post, pk=post_id)
-    form = PostForm(request.POST or None, files=request.FILES or None, instance=post_instance)
-    if form.is_valid():
-        post = form.save(commit=False)
-        post.author = request.user
-        post.save()
-    context = {
-        'form': form
-    }
-    return render(
-        request,
-        'blog/create.html',
-        context
-    )
+class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
+    model = Post
+    template_name = 'blog/create.html'
+    form_class = PostForm
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
 def delete_post(request, post_id):
@@ -84,14 +84,6 @@ def delete_post(request, post_id):
         'blog/create.html',
         context
     )
-
-
-class OnlyAuthorMixin(UserPassesTestMixin):
-
-    def test_func(self):
-        object = self.get_object()
-        return object.author == self.request.user
-
 
 class CommentUpdateView(UpdateView):
     model = Comment

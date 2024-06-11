@@ -18,8 +18,8 @@ urlpatterns = [
         name='post_detail'
     ),
     path(
-        'posts/<int:post_id>/edit/',
-        views.edit_post,
+        'posts/<int:pk>/edit/',
+        views.EditPostUpdateView.as_view(),
         name='edit_post'
     ),
     path(
