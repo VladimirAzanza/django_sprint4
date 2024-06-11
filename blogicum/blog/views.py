@@ -1,36 +1,20 @@
-from typing import Any
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models.query import QuerySet
-from django.http.response import HttpResponse as HttpResponse, HttpResponseRedirect
+from django.forms import BaseModelForm
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DeleteView, DetailView, ListView, UpdateView
+from django.views.generic import (
+    CreateView, DeleteView, DetailView, ListView, UpdateView
+)
 
-from blogicum.constants import MAX_POSTS_SHOWED
 from .models import Category, Post, Comment
 from .forms import CommentForm, PostForm, UserForm
 
 
 User = get_user_model()
-
-
-class OnlyAuthorMixin(UserPassesTestMixin):
-
-    def test_func(self):
-        object = self.get_object()
-        return object.author == self.request.user
-
-
-class IndexListView(ListView):
-    model = Post
-    template_name = 'blog/index.html'
-    paginate_by = 10
-
-    def get_queryset(self):
-        return Post.published_posts.all()
 
 
 @login_required
@@ -43,6 +27,15 @@ def add_comment(request, post_id):
         comment.post = post
         comment.save()
     return redirect('blog:post_detail', pk=post_id)
+
+
+class IndexListView(ListView):
+    model = Post
+    template_name = 'blog/index.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Post.published_posts.all()
 
 
 class PostDetailView(DetailView):
@@ -67,6 +60,13 @@ class PostDetailView(DetailView):
         context['form'] = CommentForm()
         context['comments'] = self.post.comments.all()
         return context
+
+
+class OnlyAuthorMixin(UserPassesTestMixin):
+
+    def test_func(self):
+        object = self.get_object()
+        return object.author == self.request.user
 
 
 class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
@@ -139,22 +139,21 @@ class CategoryPostsListView(ListView):
         return context
 
 
-@login_required
-def create_post(request):
-    form = PostForm(request.POST or None, files=request.FILES or None)
-    if form.is_valid():
-        post = form.save(commit=False)
-        post.author = request.user
-        post.save()
-        return redirect('blog:profile', username=post.author.username)
-    context = {
-        'form': form
-    }
-    return render(
-        request,
-        'blog/create.html',
-        context
-    )
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/create.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        self.author = form.instance.author
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse(
+            'blog:profile',
+            kwargs={'username': self.author.username}
+        )
 
 
 class ProfileListView(ListView):

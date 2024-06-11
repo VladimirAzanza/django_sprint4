@@ -18,6 +18,11 @@ urlpatterns = [
         name='post_detail'
     ),
     path(
+        'posts/create/',
+        views.PostCreateView.as_view(),
+        name='create_post'
+    ),
+    path(
         'posts/<int:pk>/edit/',
         views.EditPostUpdateView.as_view(),
         name='edit_post'
@@ -46,11 +51,6 @@ urlpatterns = [
         'category/<slug:category_slug>/',
         views.CategoryPostsListView.as_view(),
         name='category_posts'
-    ),
-    path(
-        'posts/create/',
-        views.create_post,
-        name='create_post'
     ),
     path(
         'profile/<slug:username>/',
