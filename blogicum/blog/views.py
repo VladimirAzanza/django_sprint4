@@ -18,7 +18,7 @@ User = get_user_model()
 class IndexListView(ListView):
     model = Post
     template_name = 'blog/index.html'
-    context_object_name = 'page_obj'
+    paginate_by = 10
 
     def get_queryset(self):
         return Post.published_posts.all()
@@ -79,7 +79,7 @@ class CommentDeleteView(DeleteView):
 class CategoryPostsListView(ListView):
     model = Category
     template_name = 'blog/category.html'
-    context_object_name = 'page_obj'
+    paginate_by = 10
 
     def get_queryset(self):
         self.category = get_object_or_404(
