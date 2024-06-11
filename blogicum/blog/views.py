@@ -3,12 +3,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
-from django.http import HttpRequest
 from django.http.response import HttpResponse as HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DeleteView, ListView, UpdateView
+from django.views.generic import DeleteView, DetailView, ListView, UpdateView
 
 from blogicum.constants import MAX_POSTS_SHOWED
 from .models import Category, Post, Comment
@@ -43,28 +42,31 @@ def add_comment(request, post_id):
         comment.author = request.user
         comment.post = post
         comment.save()
-    return redirect('blog:post_detail', post_id=post_id)
+    return redirect('blog:post_detail', pk=post_id)
 
 
-def post_detail(request, post_id):
-    post = get_object_or_404(
-        Post.objects.all(),
-        pk=post_id,
-    )
-    if request.user != post.author:
-        post = get_object_or_404(
-            Post.published_posts.all(),
-            pk=post_id,
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/detail.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.post = get_object_or_404(
+            Post.objects.all(),
+            pk=kwargs['pk'],
         )
-    return render(
-        request,
-        'blog/detail.html',
-        {
-            'post': post,
-            'form': CommentForm(),
-            'comments': post.comments.all()
-        }
-    )
+        if request.user != self.post.author:
+            self.post = get_object_or_404(
+                Post.published_posts.all(),
+                pk=kwargs['pk'],
+            )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['post'] = self.post
+        context['form'] = CommentForm()
+        context['comments'] = self.post.comments.all()
+        return context
 
 
 class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
@@ -74,7 +76,7 @@ class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         if not self.test_func():
-            return redirect('blog:post_detail', post_id=kwargs['pk'])
+            return redirect('blog:post_detail', pk=kwargs['pk'])
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -110,7 +112,7 @@ class CommentDeleteView(OnlyAuthorMixin, DeleteView):
     def get_success_url(self):
         return reverse(
             'blog:post_detail',
-            kwargs={'post_id': self.object.post.id}
+            kwargs={'pk': self.object.post.id}
         )
 
 

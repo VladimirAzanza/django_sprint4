@@ -113,7 +113,7 @@ class Post(BaseModel):
         ordering = ('-pub_date',)
 
     def get_absolute_url(self):
-        return reverse('blog:post_detail', kwargs={'post_id': self.id})
+        return reverse('blog:post_detail', kwargs={'pk': self.id})
 
     def __str__(self):
         return self.title[:TRUNCATE_LENGTH]
@@ -146,4 +146,4 @@ class Comment(BaseModel):
         ordering = ('created_at',)
 
     def get_absolute_url(self):
-        return reverse('blog:post_detail', kwargs={'post_id': self.post.pk})
+        return reverse('blog:post_detail', kwargs={'pk': self.post.pk})
