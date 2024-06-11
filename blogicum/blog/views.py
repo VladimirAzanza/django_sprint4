@@ -1,3 +1,4 @@
+from typing import Any
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -148,17 +149,21 @@ def create_post(request):
     )
 
 
-def profile(request, username):
-    profile = get_object_or_404(User, username=username)
-    page_obj = Post.objects.filter(author=profile)
-    return render(
-        request,
-        'blog/profile.html',
-        context={
-            'profile': profile,
-            'page_obj': page_obj
-        }
-    )
+class ProfileListView(ListView):
+    model = Post
+    template_name = 'blog/profile.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.profile = get_object_or_404(
+            User,
+            username=self.kwargs['username'])
+        return Post.objects.filter(author=self.profile)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['profile'] = self.profile
+        return context
 
 
 def edit_profile(request):
