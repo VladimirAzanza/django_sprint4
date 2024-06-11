@@ -133,12 +133,14 @@ class CategoryPostsListView(ListView):
         return context
 
 
+@login_required
 def create_post(request):
     form = PostForm(request.POST or None, files=request.FILES or None)
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
         post.save()
+        return redirect('blog:profile', username=post.author.username)
     context = {
         'form': form
     }
