@@ -118,6 +118,10 @@ class Post(BaseModel):
     def __str__(self):
         return self.title[:TRUNCATE_LENGTH]
 
+    @property
+    def comment_count(self):
+        return self.comments.count()
+
 
 class Comment(BaseModel):
     text = text = models.TextField(
