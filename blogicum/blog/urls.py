@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
 
 from . import views
@@ -13,7 +11,7 @@ urlpatterns = [
         name='index'
     ),
     path(
-        'posts/<int:pk>/',
+        'posts/<int:post_id>/',
         views.PostDetailView.as_view(),
         name='post_detail'
     ),
@@ -23,12 +21,12 @@ urlpatterns = [
         name='create_post'
     ),
     path(
-        'posts/<int:pk>/edit/',
+        'posts/<int:post_id>/edit/',
         views.EditPostUpdateView.as_view(),
         name='edit_post'
     ),
     path(
-        'posts/<int:pk>/delete/',
+        'posts/<int:post_id>/delete/',
         views.PostDeleteView.as_view(),
         name='delete_post'
     ),
@@ -38,12 +36,12 @@ urlpatterns = [
         name='add_comment'
     ),
     path(
-        'posts/<int:post_id>/edit_comment/<int:pk>/',
+        'posts/<int:post_id>/edit_comment/<int:comment_id>/',
         views.CommentUpdateView.as_view(),
         name='edit_comment'
     ),
     path(
-        'posts/<int:post_id>/delete_comment/<int:pk>/',
+        'posts/<int:post_id>/delete_comment/<int:comment_id>/',
         views.CommentDeleteView.as_view(),
         name='delete_comment'
     ),
@@ -53,7 +51,7 @@ urlpatterns = [
         name='category_posts'
     ),
     path(
-        'profile/<slug:username>/',
+        'profile/<str:username>/',
         views.ProfileListView.as_view(),
         name='profile'
     ),
@@ -63,8 +61,3 @@ urlpatterns = [
         name='edit_profile'
     ),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-    )

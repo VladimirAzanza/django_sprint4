@@ -24,7 +24,7 @@ def add_comment(request, post_id):
         comment.author = request.user
         comment.post = post
         comment.save()
-    return redirect('blog:post_detail', pk=post_id)
+    return redirect('blog:post_detail', post_id=post_id)
 
 
 class IndexListView(ListView):
@@ -38,17 +38,18 @@ class IndexListView(ListView):
 
 class PostDetailView(DetailView):
     model = Post
+    pk_url_kwarg = 'post_id'
     template_name = 'blog/detail.html'
 
     def dispatch(self, request, *args, **kwargs):
         self.post = get_object_or_404(
             Post.objects.all(),
-            pk=kwargs['pk'],
+            pk=kwargs['post_id'],
         )
         if request.user != self.post.author:
             self.post = get_object_or_404(
                 Post.published_posts.all(),
-                pk=kwargs['pk'],
+                pk=kwargs['post_id'],
             )
         return super().dispatch(request, *args, **kwargs)
 
@@ -69,26 +70,31 @@ class OnlyAuthorMixin(UserPassesTestMixin):
 
 class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
     model = Post
+    pk_url_kwarg = 'post_id'
     template_name = 'blog/create.html'
     form_class = PostForm
 
     def dispatch(self, request, *args, **kwargs):
         if not self.test_func():
-            return redirect('blog:post_detail', pk=kwargs['pk'])
+            return reverse('blog:post_detail', kwargs={'post_id': self.object.pk})
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+    def get_success_url(self) -> str:
+        return reverse('blog:post_detail', kwargs={'post_id': self.object.pk})
+
 
 class PostDeleteView(LoginRequiredMixin, OnlyAuthorMixin, DeleteView):
     model = Post
+    pk_url_kwarg = 'post_id'
     template_name = 'blog/create.html'
     success_url = reverse_lazy('blog:index')
 
     def dispatch(self, request, *args, **kwargs):
-        self.post_instance = get_object_or_404(Post, pk=kwargs['pk'])
+        self.post_instance = get_object_or_404(Post, pk=kwargs['post_id'])
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -101,16 +107,23 @@ class CommentUpdateView(OnlyAuthorMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment.html'
+    pk_url_kwarg = 'comment_id'
+
+    def get_success_url(self) -> str:
+        return reverse_lazy(
+            'blog:post_detail', kwargs={'post_id': self.object.post.pk}
+        )
 
 
 class CommentDeleteView(OnlyAuthorMixin, DeleteView):
     model = Comment
     template_name = 'blog/comment.html'
+    pk_url_kwarg = 'comment_id'
 
     def get_success_url(self):
-        return reverse(
+        return reverse_lazy(
             'blog:post_detail',
-            kwargs={'pk': self.object.post.id}
+            kwargs={'post_id': self.object.post.pk}
         )
 
 

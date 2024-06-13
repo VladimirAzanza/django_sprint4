@@ -116,9 +116,6 @@ class Post(BaseModel):
     def __str__(self):
         return self.title[:TRUNCATE_LENGTH]
 
-    def get_absolute_url(self):
-        return reverse('blog:post_detail', kwargs={'pk': self.id})
-
 
 class Comment(BaseModel):
     text = text = models.TextField(
@@ -143,6 +140,3 @@ class Comment(BaseModel):
 
     def __str__(self):
         return self.text[:TRUNCATE_LENGTH]
-
-    def get_absolute_url(self):
-        return reverse('blog:post_detail', kwargs={'pk': self.post.pk})
