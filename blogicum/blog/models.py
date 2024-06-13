@@ -104,6 +104,7 @@ class Post(BaseModel):
         blank=True,
         upload_to='posts_images'
     )
+
     objects = models.Manager()
     published_posts = PublishedPostManager()
 
@@ -112,15 +113,11 @@ class Post(BaseModel):
         verbose_name_plural = 'Публикации'
         ordering = ('-pub_date',)
 
-    def get_absolute_url(self):
-        return reverse('blog:post_detail', kwargs={'pk': self.id})
-
     def __str__(self):
         return self.title[:TRUNCATE_LENGTH]
 
-    @property
-    def comment_count(self):
-        return self.comments.count()
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', kwargs={'pk': self.id})
 
 
 class Comment(BaseModel):
@@ -140,13 +137,12 @@ class Comment(BaseModel):
         verbose_name='Автор публикации'
     )
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         verbose_name = ('комментарий')
         verbose_name_plural = ('Комментарии')
-        ordering = ('created_at',)
-
-    def get_absolute_url(self):
-        return reverse('blog:post_detail', kwargs={'pk': self.post.pk})
 
     def __str__(self):
         return self.text[:TRUNCATE_LENGTH]
+
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', kwargs={'pk': self.post.pk})
