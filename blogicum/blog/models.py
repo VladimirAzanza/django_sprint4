@@ -147,3 +147,6 @@ class Comment(BaseModel):
 
     def get_absolute_url(self):
         return reverse('blog:post_detail', kwargs={'pk': self.post.pk})
+
+    def __str__(self):
+        return self.text[:TRUNCATE_LENGTH]
