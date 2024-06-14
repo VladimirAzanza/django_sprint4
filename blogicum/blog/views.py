@@ -37,7 +37,7 @@ class IndexListView(ListView):
         return Post.published_posts.all()
 
 
-class PostDetailView(OnlyAuthorMixin, DetailView):
+class PostDetailView(DetailView):
     model = Post
     pk_url_kwarg = 'post_id'
     template_name = 'blog/detail.html'
@@ -64,17 +64,14 @@ class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
     template_name = 'blog/create.html'
     form_class = PostForm
 
-    def dispatch(self, request, *args, **kwargs):
-        if not self.test_func():
-            return reverse('blog:post_detail', kwargs={'post_id': self.object.pk})
-        return super().dispatch(request, *args, **kwargs)
-
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
-        return reverse('blog:post_detail', kwargs={'post_id': self.object.pk})
+        return reverse_lazy(
+            'blog:post_detail', kwargs={'post_id': self.object.pk}
+        )
 
 
 class PostDeleteView(LoginRequiredMixin, OnlyAuthorMixin, DeleteView):
