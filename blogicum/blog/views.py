@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models.base import Model as Model
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.urls import reverse, reverse_lazy
@@ -38,17 +37,22 @@ class IndexListView(ListView):
 
 
 class PostDetailView(DetailView):
-    model = Post
     pk_url_kwarg = 'post_id'
     template_name = 'blog/detail.html'
 
     def get_object(self, queryset=None):
         post_id = self.kwargs.get(self.pk_url_kwarg)
         post = get_object_or_404(
-            Post.published_posts.all(),
+            Post.objects.all(),
             pk=post_id,
         )
-        return post
+        if self.request.user == post.author:
+            return post
+        else:
+            return get_object_or_404(
+                Post.published_posts.all(),
+                pk=post_id,
+            )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -58,7 +62,7 @@ class PostDetailView(DetailView):
         return context
 
 
-class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
+class PostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
     model = Post
     pk_url_kwarg = 'post_id'
     template_name = 'blog/create.html'
