@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models.base import Model as Model
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.urls import reverse, reverse_lazy
@@ -8,8 +9,9 @@ from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
 
-from .models import Category, Post, Comment
+from .custom_mixins import OnlyAuthorMixin
 from .forms import CommentForm, PostForm, UserForm
+from .models import Category, Comment, Post
 
 
 User = get_user_model()
@@ -28,7 +30,6 @@ def add_comment(request, post_id):
 
 
 class IndexListView(ListView):
-    model = Post
     template_name = 'blog/index.html'
     paginate_by = 10
 
@@ -36,36 +37,25 @@ class IndexListView(ListView):
         return Post.published_posts.all()
 
 
-class PostDetailView(DetailView):
+class PostDetailView(OnlyAuthorMixin, DetailView):
     model = Post
     pk_url_kwarg = 'post_id'
     template_name = 'blog/detail.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        self.post = get_object_or_404(
-            Post.objects.all(),
-            pk=kwargs['post_id'],
+    def get_object(self, queryset=None):
+        post_id = self.kwargs.get(self.pk_url_kwarg)
+        post = get_object_or_404(
+            Post.published_posts.all(),
+            pk=post_id,
         )
-        if request.user != self.post.author:
-            self.post = get_object_or_404(
-                Post.published_posts.all(),
-                pk=kwargs['post_id'],
-            )
-        return super().dispatch(request, *args, **kwargs)
+        return post
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['post'] = self.post
+        context['post'] = self.get_object()
         context['form'] = CommentForm()
-        context['comments'] = self.post.comments.all()
+        context['comments'] = self.get_object().comments.all()
         return context
-
-
-class OnlyAuthorMixin(UserPassesTestMixin):
-
-    def test_func(self):
-        object = self.get_object()
-        return object.author == self.request.user
 
 
 class EditPostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
@@ -128,7 +118,6 @@ class CommentDeleteView(OnlyAuthorMixin, DeleteView):
 
 
 class CategoryPostsListView(ListView):
-    model = Category
     template_name = 'blog/category.html'
     paginate_by = 10
 
@@ -168,7 +157,6 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 
 class ProfileListView(ListView):
-    model = Post
     template_name = 'blog/profile.html'
     paginate_by = 10
 

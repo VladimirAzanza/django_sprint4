@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.urls import reverse
 
 from .managers import PublishedPostManager
 from blogicum.constants import MAX_TITLE_LENGTH, TRUNCATE_LENGTH
