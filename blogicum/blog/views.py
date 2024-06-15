@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models.base import Model as Model
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.urls import reverse, reverse_lazy
@@ -102,7 +103,8 @@ class CommentUpdateView(OnlyAuthorMixin, UpdateView):
 
     def get_success_url(self) -> str:
         return reverse_lazy(
-            'blog:post_detail', kwargs={'post_id': self.object.post.pk}
+            'blog:post_detail',
+            kwargs={'post_id': self.object.post.pk}
         )
 
 
@@ -122,21 +124,23 @@ class CategoryPostsListView(ListView):
     template_name = 'blog/category.html'
     paginate_by = 10
 
-    def get_queryset(self):
-        self.category = get_object_or_404(
+    def get_category(self):
+        return get_object_or_404(
             Category,
             slug=self.kwargs['category_slug'],
             is_published=True,
             created_at__lte=timezone.now()
         )
-        return self.category.posts.filter(
+
+    def get_queryset(self):
+        return self.get_category().posts.filter(
             is_published=True,
             pub_date__lte=timezone.now()
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['category'] = self.category
+        context['category'] = self.get_category()
         return context
 
 
@@ -147,13 +151,12 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        self.author = form.instance.author
         return super().form_valid(form)
 
     def get_success_url(self):
         return reverse(
             'blog:profile',
-            kwargs={'username': self.author.username}
+            kwargs={'username': self.request.user.username}
         )
 
 
@@ -161,28 +164,29 @@ class ProfileListView(ListView):
     template_name = 'blog/profile.html'
     paginate_by = 10
 
+    def get_profile(self):
+        return get_object_or_404(User, username=self.kwargs['username'])
+
     def get_queryset(self):
-        self.profile = get_object_or_404(
-            User,
-            username=self.kwargs['username'])
-        return Post.objects.filter(author=self.profile)
+        if self.request.user == self.get_profile():
+            return Post.objects.filter(author=self.get_profile())
+        else:
+            return Post.published_posts.filter(author=self.get_profile())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['profile'] = self.profile
+        context['profile'] = self.get_profile()
         return context
 
 
-def edit_profile(request):
-    user_instance = get_object_or_404(User, username=request.user.username)
-    form = UserForm(request.POST or None, instance=user_instance)
-    if form.is_valid():
-        form.save()
-        return redirect('blog:profile', username=request.user.username)
-    return render(
-        request,
-        'blog/user.html',
-        context={
-            'form': form
-        }
-    )
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    form_class = UserForm
+    template_name = 'blog/user.html'
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(User, username=self.request.user.username)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'blog:profile', kwargs={'username': self.request.user.username}
+        )
