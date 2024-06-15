@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
+from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.urls import reverse, reverse_lazy
@@ -17,16 +18,24 @@ from .models import Category, Comment, Post
 User = get_user_model()
 
 
-@login_required
-def add_comment(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    form = CommentForm(request.POST)
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.author = request.user
-        comment.post = post
-        comment.save()
-    return redirect('blog:post_detail', post_id=post_id)
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    pk_url_kwarg = 'post_id'
+    form_class = CommentForm
+
+    def get_object(self, queryset=None):
+        post_id = self.kwargs.get(self.pk_url_kwarg)
+        return get_object_or_404(Post, pk=post_id)
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post = self.get_object()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'blog:post_detail',
+            kwargs={'post_id': self.object.post.pk}
+        )
 
 
 class IndexListView(ListView):
@@ -101,7 +110,7 @@ class CommentUpdateView(OnlyAuthorMixin, UpdateView):
     template_name = 'blog/comment.html'
     pk_url_kwarg = 'comment_id'
 
-    def get_success_url(self) -> str:
+    def get_success_url(self):
         return reverse_lazy(
             'blog:post_detail',
             kwargs={'post_id': self.object.post.pk}
@@ -154,7 +163,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse(
+        return reverse_lazy(
             'blog:profile',
             kwargs={'username': self.request.user.username}
         )
