@@ -115,6 +115,10 @@ class Post(BaseModel):
     def __str__(self):
         return self.title[:TRUNCATE_LENGTH]
 
+    @property
+    def comment_count(self):
+        return self.comments.count()
+
 
 class Comment(BaseModel):
     text = text = models.TextField(
@@ -136,6 +140,7 @@ class Comment(BaseModel):
     class Meta(BaseModel.Meta):
         verbose_name = ('комментарий')
         verbose_name_plural = ('Комментарии')
+        ordering = ('created_at',)
 
     def __str__(self):
         return self.text[:TRUNCATE_LENGTH]
