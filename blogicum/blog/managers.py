@@ -8,4 +8,4 @@ class PublishedPostManager(models.Manager):
             is_published=True,
             category__is_published=True,
             pub_date__lte=timezone.now()
-        )
+        ).annotate(comment_count=models.Count('comments'))
