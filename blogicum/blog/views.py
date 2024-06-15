@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import models
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.urls import reverse_lazy
@@ -127,7 +128,9 @@ class CategoryPostsListView(ListView):
         return self.get_category().posts.filter(
             is_published=True,
             pub_date__lte=timezone.now()
-        )
+        ).annotate(
+            comment_count=models.Count('comments')
+        ).order_by('-pub_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -144,7 +147,11 @@ class ProfileListView(ListView):
 
     def get_queryset(self):
         if self.request.user == self.get_profile():
-            return Post.objects.filter(author=self.get_profile())
+            return Post.objects.filter(
+                author=self.get_profile()
+            ).annotate(
+                comment_count=models.Count('comments')
+            ).order_by('-pub_date')
         else:
             return Post.published_posts.filter(author=self.get_profile())
 
