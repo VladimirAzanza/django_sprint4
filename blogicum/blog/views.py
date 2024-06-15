@@ -7,9 +7,15 @@ from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
 
-from .custom_mixins import OnlyAuthorMixin
+from .custom_mixins import (
+    CommentSuccessUrlMixin,
+    CommentMixin,
+    OnlyAuthorMixin,
+    PostFormMixin,
+    PostMixin
+)
 from .forms import CommentForm, PostForm, UserForm
-from .models import Category, Comment, Post
+from .models import Category, Post
 
 
 User = get_user_model()
@@ -49,26 +55,24 @@ class PostDetailView(DetailView):
         return context
 
 
-class PostUpdateView(LoginRequiredMixin, OnlyAuthorMixin, UpdateView):
-    model = Post
-    pk_url_kwarg = 'post_id'
-    template_name = 'blog/create.html'
-    form_class = PostForm
+class PostCreateView(PostMixin, PostFormMixin, CreateView):
 
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
+    def get_success_url(self):
+        return reverse_lazy(
+            'blog:profile',
+            kwargs={'username': self.request.user.username}
+        )
 
-    def get_success_url(self) -> str:
+
+class PostUpdateView(OnlyAuthorMixin, PostFormMixin, PostMixin, UpdateView):
+
+    def get_success_url(self):
         return reverse_lazy(
             'blog:post_detail', kwargs={'post_id': self.object.pk}
         )
 
 
-class PostDeleteView(LoginRequiredMixin, OnlyAuthorMixin, DeleteView):
-    model = Post
-    pk_url_kwarg = 'post_id'
-    template_name = 'blog/create.html'
+class PostDeleteView(OnlyAuthorMixin, PostMixin, DeleteView):
     success_url = reverse_lazy('blog:index')
 
     def get_object(self, queryset=None):
@@ -81,7 +85,7 @@ class PostDeleteView(LoginRequiredMixin, OnlyAuthorMixin, DeleteView):
         return context
 
 
-class CommentCreateView(LoginRequiredMixin, CreateView):
+class CommentCreateView(CommentSuccessUrlMixin, CreateView):
     pk_url_kwarg = 'post_id'
     form_class = CommentForm
 
@@ -94,36 +98,13 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         form.instance.post = self.get_object()
         return super().form_valid(form)
 
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:post_detail',
-            kwargs={'post_id': self.object.post.pk}
-        )
 
-
-class CommentUpdateView(OnlyAuthorMixin, UpdateView):
-    model = Comment
+class CommentUpdateView(CommentMixin, CommentSuccessUrlMixin, UpdateView):
     form_class = CommentForm
-    template_name = 'blog/comment.html'
-    pk_url_kwarg = 'comment_id'
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:post_detail',
-            kwargs={'post_id': self.object.post.pk}
-        )
 
 
-class CommentDeleteView(OnlyAuthorMixin, DeleteView):
-    model = Comment
-    template_name = 'blog/comment.html'
-    pk_url_kwarg = 'comment_id'
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:post_detail',
-            kwargs={'post_id': self.object.post.pk}
-        )
+class CommentDeleteView(CommentMixin, CommentSuccessUrlMixin, DeleteView):
+    pass
 
 
 class CategoryPostsListView(ListView):
@@ -148,22 +129,6 @@ class CategoryPostsListView(ListView):
         context = super().get_context_data(**kwargs)
         context['category'] = self.get_category()
         return context
-
-
-class PostCreateView(LoginRequiredMixin, CreateView):
-    model = Post
-    form_class = PostForm
-    template_name = 'blog/create.html'
-
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:profile',
-            kwargs={'username': self.request.user.username}
-        )
 
 
 class ProfileListView(ListView):
