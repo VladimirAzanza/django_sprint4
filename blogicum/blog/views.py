@@ -1,11 +1,8 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models.base import Model as Model
-from django.db.models.query import QuerySet
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
@@ -16,26 +13,6 @@ from .models import Category, Comment, Post
 
 
 User = get_user_model()
-
-
-class CommentCreateView(LoginRequiredMixin, CreateView):
-    pk_url_kwarg = 'post_id'
-    form_class = CommentForm
-
-    def get_object(self, queryset=None):
-        post_id = self.kwargs.get(self.pk_url_kwarg)
-        return get_object_or_404(Post, pk=post_id)
-
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        form.instance.post = self.get_object()
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:post_detail',
-            kwargs={'post_id': self.object.post.pk}
-        )
 
 
 class IndexListView(ListView):
@@ -102,6 +79,26 @@ class PostDeleteView(LoginRequiredMixin, OnlyAuthorMixin, DeleteView):
         context = super().get_context_data(**kwargs)
         context['form'] = PostForm(instance=self.get_object())
         return context
+
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    pk_url_kwarg = 'post_id'
+    form_class = CommentForm
+
+    def get_object(self, queryset=None):
+        post_id = self.kwargs.get(self.pk_url_kwarg)
+        return get_object_or_404(Post, pk=post_id)
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post = self.get_object()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'blog:post_detail',
+            kwargs={'post_id': self.object.post.pk}
+        )
 
 
 class CommentUpdateView(OnlyAuthorMixin, UpdateView):
