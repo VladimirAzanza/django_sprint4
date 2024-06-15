@@ -4,7 +4,11 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.urls import reverse_lazy
 from django.views.generic import (
-    CreateView, DeleteView, DetailView, ListView, UpdateView
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView
 )
 
 from .custom_mixins import (
