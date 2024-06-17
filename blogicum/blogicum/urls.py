@@ -9,7 +9,7 @@ handler403 = 'pages.views.csrf_failure'
 handler404 = 'pages.views.page_not_found'
 handler500 = 'pages.views.internal_server_error'
 
-auth_prefixes = [
+auth_urls = [
     path('', include('django.contrib.auth.urls')),
     path(
         'registration/',
@@ -26,7 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('pages/', include('pages.urls', namespace='pages')),
     path('', include('blog.urls', namespace='blog')),
-    path('auth/', include(auth_prefixes))
+    path('auth/', include(auth_urls))
 ]
 
 if settings.DEBUG:
