@@ -12,9 +12,9 @@ from django.views.generic import (
     UpdateView
 )
 
-from .custom_mixins import (
-    CommentSuccessUrlMixin,
+from .mixin import (    
     CommentMixin,
+    CommentSuccessUrlMixin,
     OnlyAuthorMixin,
     PostFormMixin,
     PostMixin

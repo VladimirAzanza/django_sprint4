@@ -7,10 +7,8 @@ from .models import Comment, Post
 
 
 class OnlyAuthorMixin(UserPassesTestMixin):
-
     def test_func(self):
-        object = self.get_object()
-        return object.author == self.request.user
+        return self.get_object().author == self.request.user
 
     def handle_no_permission(self):
         return HttpResponseRedirect(

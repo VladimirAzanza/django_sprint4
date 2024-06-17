@@ -21,7 +21,7 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ('-created_at',)
+        ordering = ('created_at',)
 
 
 class Category(BaseModel):
@@ -136,7 +136,6 @@ class Comment(BaseModel):
     class Meta(BaseModel.Meta):
         verbose_name = ('комментарий')
         verbose_name_plural = ('Комментарии')
-        ordering = ('created_at',)
 
     def __str__(self):
         return self.text[:TRUNCATE_LENGTH]
